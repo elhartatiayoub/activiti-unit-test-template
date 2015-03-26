@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions id="definitions"
+             xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:activiti="http://activiti.org/bpmn"
+             typeLanguage="http://www.w3.org/2001/XMLSchema"
+             expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="activiti-report">
+
+    <process id="compensateProcess">
+
+        <startEvent id="start"/>
+
+        <sequenceFlow sourceRef="start" targetRef="scope"/>
+
+        <subProcess id="scope" name="sub">
+
+            <startEvent id="startInScope" name="subStart"/>
+
+            <sequenceFlow sourceRef="startInScope" targetRef="bookHotel"/>
+
+            <serviceTask id="bookHotel" name="bookHotel task"
+                         activiti:delegateExpression="${bookHotel}">
+            </serviceTask>
+
+            <boundaryEvent id="compensateBookHotelEvt" name="Boundary event" attachedToRef="bookHotel">
+                <compensateEventDefinition/>
+            </boundaryEvent>
+
+            <userTask id="undoBookHotel" isForCompensation="true" name="usertask"
+                         activiti:delegateExpression="${undoService}">
+            </userTask>
+
+            <sequenceFlow sourceRef="bookHotel" targetRef="endInScope"/>
+
+            <endEvent id="endInScope"/>
+
+            <association associationDirection="One" sourceRef="compensateBookHotelEvt" targetRef="undoBookHotel"/>
+
+        </subProcess>
+
+        <sequenceFlow sourceRef="scope" targetRef="throwCompensate"/>
+
+        <intermediateThrowEvent id="throwCompensate"  >
+            <compensateEventDefinition activityRef="scope"/>
+        </intermediateThrowEvent>
+
+        <sequenceFlow sourceRef="throwCompensate" targetRef="end"/>
+
+
+        <endEvent id="end"/>
+    </process>
+
+</definitions>

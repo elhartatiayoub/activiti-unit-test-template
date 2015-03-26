@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions id="definitions"
+             xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+
+             targetNamespace="http://www.activiti.org/bpmn2.0">
+
+    <process id="fixSystemFailure">
+
+        <startEvent id="theStart" />
+
+        <sequenceFlow id="flow1" sourceRef="theStart" targetRef="subProcess" />
+        <subProcess id="subProcess" >
+
+            <startEvent id="subProcessStart" />
+            <sequenceFlow id="flow2" sourceRef="subProcessStart" targetRef="subProcessFork" />
+
+            <parallelGateway id="subProcessFork" />
+            <sequenceFlow id="flow3" sourceRef="subProcessFork" targetRef="task1" />
+            <sequenceFlow id="flow4" sourceRef="subProcessFork" targetRef="task2" />
+
+            <userTask id="task1" name="Investigate hardware" />
+            <sequenceFlow id="flow5" sourceRef="task1" targetRef="subProcessJoin" />
+
+            <userTask id="task2" name="Investigate software" />
+            <sequenceFlow id="flow6" sourceRef="task2" targetRef="subProcessJoin" />
+
+            <parallelGateway id="subProcessJoin" />
+            <sequenceFlow id="flow7" sourceRef="subProcessJoin" targetRef="subProcessEnd" />
+            <endEvent id="subProcessEnd" />
+
+        </subProcess>
+
+        <!-- Timer on subprocess -->
+        <boundaryEvent id="timer" attachedToRef="subProcess">
+            <timerEventDefinition>
+                <timeDuration>PT2S</timeDuration>
+            </timerEventDefinition>
+        </boundaryEvent>
+        <sequenceFlow id="flow8" sourceRef="timer" targetRef="taskAfterTimer" />
+        <userTask id="taskAfterTimer" name="Hand over to Level 2 support" />
+        <sequenceFlow id="flow9" sourceRef="taskAfterTimer" targetRef="myErrorEndEvent" />
+        <endEvent id="myErrorEndEvent">
+            <errorEventDefinition errorRef="myError" />
+        </endEvent>
+
+        <sequenceFlow id="flow10" sourceRef="subProcess" targetRef="taskAfterSubProcess" />
+        <userTask id="taskAfterSubProcess" name="Write report"/>
+        <sequenceFlow id="flow11" sourceRef="taskAfterSubProcess" targetRef="theEnd" />
+        <endEvent id="theEnd" />
+
+        <subProcess id="sub" name="subProcess" triggeredByEvent="true">
+            <startEvent id="error1start">
+                <errorEventDefinition errorRef="myError"/>
+            </startEvent>
+            <userTask id="errTask2" name="error handling"/>
+            <endEvent id="end2"/>
+            <sequenceFlow id="sid-8BBC8BD9-EBF8-4620-998B-840C7D57D2A0" sourceRef="error1start" targetRef="errTask2"/>
+            <sequenceFlow id="sid-EB2FB26F-A54B-4AC2-8D87-894115BCD4D9" sourceRef="errTask2" targetRef="end2"/>
+        </subProcess>
+
+
+    </process>
+
+</definitions>
+
